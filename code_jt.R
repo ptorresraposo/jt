@@ -1,0 +1,76 @@
+if (!require("alphavantager")) install.packages("alphavantager")
+library(alphavantager)
+library(tidyverse)
+library(quantmod)
+library(PerformanceAnalytics)
+library(zoo)
+library(ggplot2)
+
+## Define variables
+av_api_key("F11AG45Z8NP9EFPY")
+desde <- '2014-12-31'
+hasta <- '2022-01-01'
+
+# Obtiene Datos de Alpha Vantage API
+SPY <- av_get(symbol = "SPY", av_fun = "TIME_SERIES_DAiLY", outputsize="full") %>%
+    select(timestamp, close) %>%
+    filter(timestamp > desde, timestamp < hasta)
+VMO <- av_get(symbol = "VMO", av_fun = "TIME_SERIES_DAiLY", outputsize="full") %>%
+    select(timestamp, close) %>%
+    filter(timestamp > desde, timestamp < hasta)
+QQQ <- av_get(symbol = "QQQ", av_fun = "TIME_SERIES_DAiLY", outputsize="full") %>%
+    select(timestamp, close) %>%
+    filter(timestamp > desde, timestamp < hasta)
+
+
+port <- merge((merge(SPY,VMO, by = "timestamp")),QQQ, by = "timestamp")
+colnames(port) <- c("date","SPY", "VMO", "QQQ")
+port <- xts(port[,2:4], order.by = port$date)
+port_ret <- na.omit(diff(log(port)))
+
+plot(x=as.zoo(port), main = "Precio de Cierre", legend =c("SPY", "WMO", "QQQ"),col = c("red", "blue", "darkgreen"))
+plot(x=as.zoo(port_ret), xlab="Time", ylab = c("SPY", "WMO", "QQQ"), main = "Retorno" , col = c("red", "blue", "darkgreen"), ylim=c(-0.10,0.10))
+
+SPY_rr <- mean(port_ret$SPY)/ sd(port_ret$SPY)
+VMO_rr <- mean(port_ret$VMO)/ sd(port_ret$VMO)
+QQQ_rr <- mean(port_ret$QQQ)/ sd(port_ret$QQQ)
+
+
+data_res <-  data.frame()
+
+data_res[1,1] <- mean(port_ret$SPY)
+data_res[1,2] <- sd(port_ret$SPY)
+data_res[1,3] <- SPY_rr
+
+data_res[2,1] <- mean(port_ret$VMO)
+data_res[2,2] <- sd(port_ret$VMO)
+data_res[2,3] <- VMO_rr
+
+data_res[3,1] <- mean(port_ret$QQQ)
+data_res[3,2] <- sd(port_ret$QQQ)
+data_res[3,3] <- QQQ_rr
+
+data_res[1,4] <- Return.annualized(port_ret[,1],geometric = TRUE)
+data_res[2,4] <- Return.annualized(port_ret[,2],geometric = TRUE)
+data_res[3,4] <- Return.annualized(port_ret[,3],geometric = TRUE)
+
+
+colnames(data_res) <- c("ret", "sd", "rr","ret_anual")
+rownames(data_res) <- c("SPY","WMO","QQQ")
+
+print(data_res)
+
+plot(data_res$sd,data_res$mean, main ="Riesgo v/s Retorno", xlab="Riesgo", ylab = "Retorno", col = c("red", "blue", "darkgreen"), pch = 23,  cex=1)
+legend(x="topleft", legend=c("SPY","WMO","QQQ"), fill = c("red", "blue", "darkgreen"))
+
+plot(data_res$rr,main ="Retorno Ajustado por Riesgo", xlab="", ylab = "Retorno/Riesgo", col = c("red", "blue", "darkgreen"),pch = 23,  cex=1 )
+legend(x="topleft", legend=c("SPY","WMO","QQQ"), fill = c("red", "blue", "darkgreen"))
+
+plot(data_res$ret_anual,main ="Retorno Anualizado", xlab="", ylab = "%", col = c("red", "blue", "darkgreen"),pch = 23,  cex=1 )
+legend(x="topleft", legend=c("SPY","WMO","QQQ"), fill = c("red", "blue", "darkgreen"))
+
+## Gráfico retorno acumulado simple
+
+plot(x=as.zoo(cumsum(port_ret)),main ="Retorno Acumulado", ylab = c("SPY", "WMO", "QQQ"), col = c("red", "blue", "darkgreen"),ylim=c(-0.2,1.5))
+
+
