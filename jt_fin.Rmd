@@ -66,6 +66,12 @@ plot(x=as.zoo(port_ret), xlab="Time", ylab = c("SPY", "WMO", "QQQ"), main = "Ret
 ## Calcula retornos y Retorno Ajustado por Riesgo
 
 ```{r calcula_datos, echo=TRUE, message=TRUE, warning=TRUE, paged.print=TRUE}
+
+##    1. Retorno total y anualizado de cada activo entre 2015 y 2021.
+
+##    2. Riesgo de cada activo para ese período (puedes utilizar la medida de 
+##    riesgo que quieras).
+
 SPY_rr <- mean(port_ret$SPY)/ sd(port_ret$SPY)
 VMO_rr <- mean(port_ret$VMO)/ sd(port_ret$VMO)
 QQQ_rr <- mean(port_ret$QQQ)/ sd(port_ret$QQQ)
@@ -91,6 +97,7 @@ data_res[3,4] <- Return.annualized(port_ret[,3],geometric = TRUE)
 colnames(data_res) <- c("ret", "sd", "rr","ret_anual")
 rownames(data_res) <- c("SPY","WMO","QQQ")
 
+# cacula retornos, variabilidad y retorno anual
 print(data_res)
 
 
@@ -99,9 +106,11 @@ print(data_res)
 ```
 
 
-## Grafica
+## Grafica riesgo retorno
 
 ```{r grafica_riesgo_retorno, message=TRUE, warning=FALSE, paged.print=TRUE}
+##  3. Compara el riesgo y retorno calculado, ¿Cuál se ve más atractivo? 
+##    (justifica tu respuesta con alguna métrica, gráfico o cálculo). 
 
 plot(data_res$sd,data_res$mean, main ="Riesgo v/s Retorno", xlab="Riesgo", 
      ylab = "Retorno", col = c("red", "blue", "darkgreen"), pch = 23,  cex=1)
@@ -117,7 +126,8 @@ legend(x="topleft", legend=c("SPY","WMO","QQQ"), fill = c("red", "blue", "darkgr
 ```
 ```{r Eleccion}
 
-## Compara el riesgo y retorno calculado, ¿Cuál se ve más atractivo?
+
+
 ## La opción que tiene una mejor relación retorno versus riesgo, es el QQQ, y que 
 ## sería la más conveniente considerando que esta relación represente un comportamiento similar.
 ## También este ETF es el que mejor retorno anualizado ha mostrado, por lo que sustenta esta elección
@@ -127,7 +137,7 @@ legend(x="topleft", legend=c("SPY","WMO","QQQ"), fill = c("red", "blue", "darkgr
 ## Gráfico Retorno Acumulado Simple
 
 ```{r retorno_acumulado}
-## E
+##    4. Graficar retornos acumulados de los activos.
 plot(x=as.zoo(cumsum(port_ret)),main ="Retorno Acumulado", ylab = c("SPY", "WMO", "QQQ"), 
      col = c("red", "blue", "darkgreen"),ylim=c(-0.2,1.5))
 
